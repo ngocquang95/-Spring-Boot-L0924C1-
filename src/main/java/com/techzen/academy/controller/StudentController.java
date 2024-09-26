@@ -1,11 +1,17 @@
 package com.techzen.academy.controller;
 
 import com.techzen.academy.Student;
+import com.techzen.academy.dto.ApiResponse;
+import com.techzen.academy.exception.ApiException;
+import com.techzen.academy.exception.ErrorCode;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/students")
@@ -21,26 +27,36 @@ public class StudentController {
 
     // @RequestMapping(value = "/students", method = RequestMethod.GET)
     @GetMapping
-    public List<Student> getAll() {
-        return students;
+    public ResponseEntity<?> getAll() {
+        return ResponseEntity.ok(ApiResponse.builder().data(students).build());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Student> getById(@PathVariable("id") UUID id) {
+    public ResponseEntity<ApiResponse<Student>> getById(@PathVariable("id") UUID id) {
         for (Student student : students) {
             if (student.getId().equals(id)) {
-                // return ResponseEntity.status(HttpStatus.OK).body(student);
-                return ResponseEntity.ok(student);
+                return ResponseEntity.ok(ApiResponse.<Student>builder()
+                        .data(student)
+                        .build());
             }
         }
-
-        return ResponseEntity.notFound().build();
+        // exception ???
+        /*
+        Ngoai le -> throw ErrorCode.STUDENT_NOT_EXIST
+         */
+//        return ResponseEntity.status(ErrorCode.STUDENT_NOT_EXIST.getStatus()).body(ApiResponse.<Student>builder()
+//                .code(ErrorCode.STUDENT_NOT_EXIST.getCode())
+//                .message(ErrorCode.STUDENT_NOT_EXIST.getMessage())
+//                .build());
+        throw new ApiException(ErrorCode.TEACHER_NOT_EXIST); // AOP
     }
 
     @PostMapping
-    public ResponseEntity<Student> create(@RequestBody Student student) {
+    public ResponseEntity<ApiResponse<Student>> create(@RequestBody Student student) {
         student.setId(UUID.randomUUID());
         students.add(student);
-        return ResponseEntity.status(HttpStatus.CREATED).body(student);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.<Student>builder()
+                .data(student)
+                .build());
     }
 }
